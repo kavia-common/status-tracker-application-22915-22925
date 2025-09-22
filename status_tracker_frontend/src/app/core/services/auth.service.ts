@@ -8,6 +8,7 @@ import { TokenUtil } from '../utils/token.util';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
+  // Base API URL, injected from environment. Falls back to '/api' via environment config.
   private base = environment.apiBaseUrl;
 
   // PUBLIC_INTERFACE
@@ -15,6 +16,7 @@ export class AuthService {
     /** Perform login and persist token and user; returns the user details. */
     return this.http.post<AuthResponse>(`${this.base}/auth/login`, payload).pipe(
       tap((res) => {
+        // Persist token and user for subsequent requests via auth interceptor
         TokenUtil.saveToken(res.access_token);
         TokenUtil.saveUser(res.user);
       }),

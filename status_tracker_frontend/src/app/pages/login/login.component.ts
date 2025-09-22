@@ -96,7 +96,7 @@ export class LoginComponent {
     this.loading = true;
     const { username, password } = this.form.value;
 
-    // Stub-ready: Uses AuthService -> backend /auth/login per environment.apiBaseUrl
+    // Uses AuthService -> backend /auth/login per environment.apiBaseUrl
     this.auth.login({ username: username!, password: password! }).subscribe({
       next: () => {
         this.loading = false;
@@ -104,7 +104,14 @@ export class LoginComponent {
       },
       error: (e) => {
         this.loading = false;
-        this.error = e?.error?.message || 'Login failed. Please check your credentials.';
+        // Friendly error mapping
+        if (e?.status === 0) {
+          this.error = 'Cannot reach server. Please try again in a moment.';
+        } else if (e?.status === 401) {
+          this.error = e?.error?.message || 'Invalid username or password.';
+        } else {
+          this.error = e?.error?.message || 'Login failed. Please check your credentials.';
+        }
       }
     });
   }
