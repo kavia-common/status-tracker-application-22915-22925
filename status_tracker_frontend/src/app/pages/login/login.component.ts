@@ -10,53 +10,70 @@ import { AuthService } from '../../core/services/auth.service';
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
   template: `
     <div class="auth-wrap">
-      <div class="card">
+      <div class="card" role="region" aria-labelledby="loginTitle">
         <div class="card-head">
-          <div class="logo">ST</div>
-          <h2>Welcome back</h2>
+          <div class="logo" aria-hidden="true">ST</div>
+          <h1 id="loginTitle">Welcome back</h1>
           <p class="sub">Sign in to continue</p>
         </div>
-        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
           <div class="field">
-            <label>Username</label>
-            <input formControlName="username" type="text" placeholder="Enter your username"/>
-            <small *ngIf="form.controls.username.invalid && form.controls.username.touched">Username is required</small>
+            <label for="username">Username</label>
+            <input
+              id="username"
+              formControlName="username"
+              type="text"
+              placeholder="Enter your username"
+              autocomplete="username"
+              required
+              [attr.aria-invalid]="form.controls.username.invalid && form.controls.username.touched ? 'true' : null"
+              [attr.aria-describedby]="form.controls.username.invalid && form.controls.username.touched ? 'usernameError' : null"
+            />
+            <small id="usernameError" *ngIf="form.controls.username.invalid && form.controls.username.touched">Username is required</small>
           </div>
+
           <div class="field">
-            <label>Password</label>
-            <input formControlName="password" type="password" placeholder="Enter your password"/>
-            <small *ngIf="form.controls.password.invalid && form.controls.password.touched">Password is required</small>
+            <label for="password">Password</label>
+            <input
+              id="password"
+              formControlName="password"
+              type="password"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              required
+              [attr.aria-invalid]="form.controls.password.invalid && form.controls.password.touched ? 'true' : null"
+              [attr.aria-describedby]="form.controls.password.invalid && form.controls.password.touched ? 'passwordError' : null"
+            />
+            <small id="passwordError" *ngIf="form.controls.password.invalid && form.controls.password.touched">Password is required</small>
           </div>
-          <button class="btn primary" [disabled]="form.invalid || loading">
+
+          <div class="actions-row">
+            <span class="helper">Use your account credentials to access the dashboard.</span>
+          </div>
+
+          <button
+            class="btn primary"
+            type="submit"
+            [disabled]="form.invalid || loading"
+            [attr.aria-busy]="loading ? 'true' : 'false'"
+          >
             {{ loading ? 'Signing in...' : 'Sign In' }}
           </button>
-          <p class="error" *ngIf="error">{{ error }}</p>
+
+          <p class="error" role="alert" *ngIf="error">{{ error }}</p>
+          <p class="status info" *ngIf="!error && loading">Authenticating...</p>
         </form>
+
+        <div class="footer-note">
+          Need access? Contact your administrator. <span class="accent">Enterprise</span> ready.
+        </div>
       </div>
+
+      <p class="accessibility-note">Keyboard friendly: Tab to move, Enter to submit.</p>
     </div>
   `,
-  styles: [`
-    .auth-wrap {
-      min-height: 100vh; display: grid; place-items: center; background: #f9fafb;
-      background-image: radial-gradient(600px 200px at top left, rgba(37,99,235,0.12), rgba(255,255,255,0));
-    }
-    .card {
-      width: 100%; max-width: 420px; background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 1.5rem;
-      box-shadow: 0 10px 30px rgba(37,99,235,0.15);
-    }
-    .card-head { text-align: center; margin-bottom: 1rem; }
-    .logo { width: 48px; height: 48px; border-radius: 12px; background: #2563EB; color: #fff; display: grid; place-items: center; margin: 0 auto .75rem; font-weight: 700; }
-    h2 { color: #111827; margin-bottom: .25rem; }
-    .sub { color: #6b7280; }
-    .field { display: flex; flex-direction: column; gap: .35rem; margin: .75rem 0; }
-    .field label { color: #374151; font-weight: 500; }
-    .field input { padding: .65rem .8rem; border-radius: 10px; border: 1px solid #d1d5db; outline: none; transition: border .2s, box-shadow .2s; }
-    .field input:focus { border-color: #2563EB; box-shadow: 0 0 0 4px rgba(37,99,235,0.12); }
-    .btn.primary { width: 100%; padding: .7rem 1rem; border: none; border-radius: 10px; cursor: pointer; color: white; background: linear-gradient(90deg, #2563EB, #1d4ed8); box-shadow: 0 8px 20px rgba(37,99,235,0.35); transition: transform .05s; }
-    .btn.primary:disabled { opacity: .7; cursor: not-allowed; box-shadow: none; }
-    .btn.primary:active { transform: translateY(1px); }
-    .error { color: #EF4444; margin-top: .75rem; text-align: center; }
-  `]
+  styleUrl: './login.component.css'
 })
 export class LoginComponent {
   private fb = inject(FormBuilder);
@@ -71,11 +88,15 @@ export class LoginComponent {
   loading = false;
   error: string | null = null;
 
+  // PUBLIC_INTERFACE
   onSubmit() {
+    /** Handles login submit and routes to home on success; shows accessible error status on failure. */
     this.error = null;
     if (this.form.invalid) return;
     this.loading = true;
     const { username, password } = this.form.value;
+
+    // Stub-ready: Uses AuthService -> backend /auth/login per environment.apiBaseUrl
     this.auth.login({ username: username!, password: password! }).subscribe({
       next: () => {
         this.loading = false;
