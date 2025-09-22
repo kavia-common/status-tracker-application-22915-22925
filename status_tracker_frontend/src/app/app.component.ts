@@ -1,11 +1,15 @@
 import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [],
-  templateUrl: './app.component.html',
+  standalone: true,
+  imports: [RouterOutlet],
+  template: `
+    <div class="app-shell">
+      <router-outlet></router-outlet>
+    </div>
+  `,
   styleUrl: './app.component.css'
 })
-export class AppComponent {
-  title = 'status_tracker_frontend is being generated';
-}
+export class AppComponent {}
